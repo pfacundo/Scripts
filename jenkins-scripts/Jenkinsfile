@@ -1,0 +1,8 @@
+node{
+    def SLAVE = 'slave-'
+    def PORT = 80
+    stage 'Run Container'{
+        sh "docker network create ${SLAVE}1"
+        sh "docker run -d --name ${SLAVE}1 -h ${SLAVE}1 --network ${SLAVE}1 -p ${PORT}:80 ubuntu:18.04"
+    }
+}

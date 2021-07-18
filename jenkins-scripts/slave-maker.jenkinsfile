@@ -1,0 +1,40 @@
+pipeline{
+    
+    post{
+            always{
+                steps{
+                    if (currentBuild.currentResult == 'FAILURE'){
+                    sh 'docker rm -f R2-slave'
+                    }
+                if (currentBuild.currentResult == 'SUCCESS'){
+                    sh 'docker rm -f R2-slave'
+                    }
+                }
+            }
+        }
+        
+    agent {label 'Rectorado2-41b915a7'}
+
+        stages{
+            
+            stage ('build slave'){
+                steps {
+                    sh 'docker run -d -it -p 80:80 --name R2-slave -h R2-slave ubuntu:18.04'
+                }
+            }
+            
+            stage ('copy'){
+                steps{
+                    sh 'docker cp /home/facundo/swarm-client-3.9.jar R2-slave:/'
+                    sh 'docker cp /home/facundo/jenkins-slave-java.sh R2-slave:/'
+                }
+            }
+            
+            /*stage ('execution'){
+                sh 'docker exec -i R2-slave sh /jenkins-slave-java.sh'
+            }*/
+        }
+        
+        
+    
+}
