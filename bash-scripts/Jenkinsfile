@@ -1,0 +1,62 @@
+node ('master') {
+
+properties([
+    gitLabConnection('multibranch'),
+    pipelineTriggers([
+        [
+            $class: 'GitLabPushTrigger',
+            branchFilterType: 'All',
+            triggerOnPush: true,
+            triggerOnMergeRequest: false,
+            triggerOpenMergeRequestOnPush: "never",
+            triggerOnNoteRequest: true,
+            noteRegex: "Jenkins please retry a build",
+            skipWorkInProgressMergeRequest: true,
+            secretToken: "x_NDgVBs4xTqDuY17Md6",
+            ciSkip: false,
+            setBuildDescription: true,
+            addNoteOnMergeRequest: true,
+            addCiMessage: true,
+            addVoteOnMergeRequest: true,
+            acceptMergeRequestOnSuccess: false,
+            branchFilterType: "NameBasedFilter",
+            includeBranchesSpec: "release/qat",
+            excludeBranchesSpec: "",
+        ]
+    ])
+])
+
+stage ('checkout'){
+    
+        if(env.BRANCH_NAME == 'development'){
+            ROOT = env.WORKSPACE+"/development"
+        
+            dir (ROOT){
+            
+            checkout scm
+            
+            }
+        }
+        if(env.BRANCH_NAME == 'master'){
+            
+            ROOT = env.WORKSPACE+"/master"
+            
+            dir (ROOT){
+         
+                checkout scm
+            }
+            
+            
+        }
+        
+        
+    }
+    
+    stage ('build'){    
+        
+            echo BRANCH_NAME
+            
+        
+    }
+
+}
