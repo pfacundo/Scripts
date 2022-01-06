@@ -1,0 +1,149 @@
+﻿@model IOL.NET.Site.ViewModels.MiCuenta.EstadoDeCuenta.EstadoDeCuentaViewModel
+@using IOL.NET.Site.ViewModels.Validators
+@using IOL.NET.Site.Views
+
+@section TitleContent{
+    <title>InvertirOnline.com - Sociedad de Bolsa - Estado de Cuenta</title>
+}
+@section MetaContent
+{
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta content="InvertirOnline.com - Sociedad de Bolsa - Trading Online" name="title">
+    <meta content="Somos el broker N°1 del mercado financiero, 18 años de trayectoria nos avalan. Con nuestra plataforma podes operar al mejor precio: acciones, bonos, opciones, cauciones y fondos comunes de inversión." name="description">
+}
+
+@Styles.Render("~/Content/IOLV6Screens", "~/Content/remuneracion", "~/Content/PortafolioStyles", "~/Content/EstadoCuentaStyles")
+<div role="main" id="estado_cuenta" class="left-sidebar">
+    <div class="container_12 row">
+        <div class="grid_3">
+            <div class="sidebar">
+                @Html.Partial("~/Views/Operar/Partial/MiCuentaSideBar.cshtml")
+            </div>
+            <div class="tac">
+                <a href="https://www.invertironline.com/external/promocion-dolar-ccl" target="_blank">
+                    <img src="https://s3.amazonaws.com/resources.invertironline.com/banner_eeuu_sitio%20%286%29.gif" />
+                </a>
+            </div>
+        </div>
+        <div class="grid_9 content">
+            @if (!Model.EstaFondeada)
+            {
+                <div class="tb">
+                    <div class="row mt10">
+                        <div class="alert alert-info notificacionBox mb5" role="alert">
+                            <i class="glyphicon glyphicon-info-sign mr5"></i>
+                            <span class="mr5"><b>Transferencias:</b> recuerde que solo se permiten transferencias desde cuentas propias de los titulares.</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        <div class="estado_cuenta">
+            @{
+                bool mostrar_cotitulares = Model.Cotitulares != null && Model.Cotitulares.Count > 0;
+            }
+
+            <h1 class="font-cuenta-titulo-1">
+                Estado de cuenta
+                <span class="font-cuenta-subtitulo-1 mt10">
+                    Saldo al @Model.FechaActual.ToString("dd/MM/yyyy HH:mm")hs | Cuenta comitente nro: @Model.NumeroCuenta
+                    @if (mostrar_cotitulares)
+                    {
+                        <img src="~/Images/iol/Assets/sprite/cotitulares.png" class="tooltiper" data-original-title="Mostrar Cotitulares y Apoderados" id="mostrarCotitulares" />
+                    }
+                </span>                
+            </h1>
+
+            @if (mostrar_cotitulares)
+            {
+                <div id="cotitulares_container" style="display: none">
+                    @Html.Partial("Partial/EstadoCuenta/Cotitulares")
+                </div>
+            }
+
+
+            @Html.Partial("Partial/EstadoCuenta/Resumen")
+
+            @if (Model.Remuneraciones.TieneRemuneracionDolares || Model.Remuneraciones.TieneRemuneracionPesos)
+            {
+                @Html.Partial("Partial/EstadoCuenta/RemuneracionDeSaldo", Model.Remuneraciones)
+            }
+
+            @Html.Partial("Partial/EstadoCuenta/Desplegable")
+
+            <div class="mi-portafolio" style="text-align:center">
+
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jquery.countdown")
+
+    <script type="text/javascript">
+        const mostrarCountdown = @Json.Encode(Model.Remuneraciones.MostarCountdown);
+
+        if (mostrarCountdown) {
+            const dueDate = "@Model.Remuneraciones.FechaLanzamientoRemuneracionDolar.ToString("yyyy/MM/dd HH:mm:ss")";
+
+            $('#remuneracion-dolares-countdown').countdown(dueDate)
+                .on("update.countdown", function (event) {
+                    $(this).html(event.strftime("%-D") + "<span class='font-title title-3 color-primary mx-1'>" + event.strftime("día%!D") + "</span>" + event.strftime("%H:%M:%S"));
+                })
+                .on('finish.countdown', function (event) {
+                    $(this).html(event.strftime("%-D") + "<span class='font-title title-3 color-primary mx-1'>" + event.strftime("día%!D") + "</span>" + event.strftime("%H:%M:%S"));
+
+                    location.reload();
+                });
+        }   
+    </script>
+}
+
+
+<script type="text/javascript">
+    $(function () {
+        $('#mostrarCotitulares').click(function () {
+            if ($('#cotitulares_container').css('display') == 'none') {
+                $('#cotitulares_container').show();
+                $('#mostrarCotitulares').attr('data-original-title', 'Ocultar Cotitulares y Apoderados');
+            }
+            else {
+                $('#cotitulares_container').hide();
+                $('#mostrarCotitulares').attr('data-original-title', 'Mostrar Cotitulares y Apoderados');
+            }
+        });
+
+        var cargoEstadisticas = false;
+        $(window).scroll(function () {
+
+            
+
+            if (!cargoEstadisticas) {
+
+                $('.mi-portafolio').html('<img src=\'/Images/iol/Assets/loading.gif\' />');
+                $.ajax({
+                    url: '@Url.Action("GetEstadisticasMiCuenta", "MiCuenta")',
+                    success: function (html) {
+                        $('.mi-portafolio').html(html);
+                    },
+                    error: function (errorMessage) {
+                        console.log(errorMessage);
+                    }
+                });
+
+                cargoEstadisticas = true;
+            }
+
+        });
+    });
+    $(document).ready(function () {
+        
+        tourEstadoDeCuenta();
+    });
+</script>
+
+@if (Model.TerminosCondiciones != null)
+{
+    @Html.Partial("Partial/EstadoCuenta/TerminosCondiciones", Model.TerminosCondiciones)
+}
